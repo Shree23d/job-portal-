@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Indeed Screening Questionnaire Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f3f2ef; padding: 30px 15px; display: flex; justify-content: center; }
+
+    #ia-container {
+      width: 100%;
+      max-width: 620px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 32px;
+      border: 1px solid #e4e2dc;
+    }
+
+    .ia-Header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid #e4e2dc;
+      padding-bottom: 16px;
+    }
+    .ia-Header h1 { font-size: 20px; color: #2d2d2d; }
+    .ia-Header p { font-size: 14px; color: #595959; margin-top: 4px; }
+
+    .ia-Questions-item {
+      margin-bottom: 24px;
+    }
+    .ia-Questions-itemLabel {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      color: #2d2d2d;
+      margin-bottom: 8px;
+    }
+
+    .ia-Input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #949494;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+    .ia-Input:focus { border-color: #2557a7; box-shadow: 0 0 0 2px rgba(37,87,167,0.25); }
+
+    .ia-RadioOption {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .ia-Footer {
+      margin-top: 32px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .ia-Btn {
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+    .ia-ContinueButton { background: #2557a7; color: #ffffff; }
+    .ia-ContinueButton:hover { background: #123e80; }
+    .ia-SubmitButton { background: #2557a7; color: #ffffff; display: none; }
+
+    .ia-ApplicationSubmitted {
+      display: none;
+      text-align: center;
+      padding: 30px 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="ia-container">
+    <div class="ia-Header">
+      <h1>CloudMatrix Technologies</h1>
+      <p>Questions from the employer for Full Stack Software Engineer</p>
+    </div>
+
+    <form id="screeningForm" onsubmit="return false;">
+      <div id="page1">
+        <div class="ia-Questions-item">
+          <label class="ia-Questions-itemLabel" for="nodeExp">How many years of work experience do you have with Node.js?</label>
+          <input type="number" class="ia-Input" id="nodeExp" min="0" placeholder="e.g. 3" />
+        </div>
+
+        <div class="ia-Questions-item">
+          <label class="ia-Questions-itemLabel" for="expectedCtc">What is your expected salary (CTC in Lakhs per annum)?</label>
+          <input type="number" class="ia-Input" id="expectedCtc" placeholder="e.g. 24" />
+        </div>
+
+        <div class="ia-Questions-item">
+          <span class="ia-Questions-itemLabel">Do you now or in the future require visa sponsorship?</span>
+          <div class="ia-RadioOption">
+            <input type="radio" id="visaNo" name="visa" value="No" />
+            <label for="visaNo">No</label>
+          </div>
+          <div class="ia-RadioOption">
+            <input type="radio" id="visaYes" name="visa" value="Yes" />
+            <label for="visaYes">Yes</label>
+          </div>
+        </div>
+
+        <div class="ia-Questions-item">
+          <span class="ia-Questions-itemLabel">Are you comfortable working remotely?</span>
+          <div class="ia-RadioOption">
+            <input type="radio" id="remoteYes" name="remote" value="Yes" />
+            <label for="remoteYes">Yes</label>
+          </div>
+          <div class="ia-RadioOption">
+            <input type="radio" id="remoteNo" name="remote" value="No" />
+            <label for="remoteNo">No</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="page2" style="display: none;">
+        <div class="ia-Questions-item">
+          <label class="ia-Questions-itemLabel" for="resumeFile">Attach your Resume (PDF)</label>
+          <input type="file" id="resumeFile" accept=".pdf" />
+        </div>
+
+        <div class="ia-Questions-item">
+          <label class="ia-Questions-itemLabel" for="locationCity">What is your current city of residence?</label>
+          <input type="text" class="ia-Input" id="locationCity" placeholder="City" />
+        </div>
+      </div>
+
+      <div class="ia-Footer">
+        <button class="ia-Btn ia-ContinueButton" id="continueBtn">Continue</button>
+        <button class="ia-Btn ia-SubmitButton" id="submitBtn">Submit your application</button>
+      </div>
+    </form>
+
+    <div class="ia-ApplicationSubmitted" id="submittedNotice">
+      <h2 style="color: #007a3d; margin-bottom: 8px;">Your application has been submitted!</h2>
+      <p style="color: #555;">CloudMatrix Technologies will contact you if your qualifications match.</p>
+    </div>
+  </div>
+
+  <script>
+    let p = 1;
+    const page1 = document.getElementById('page1');
+    const page2 = document.getElementById('page2');
+    const contBtn = document.getElementById('continueBtn');
+    const subBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('screeningForm');
+    const notice = document.getElementById('submittedNotice');
+
+    contBtn.onclick = () => {
+      p = 2;
+      page1.style.display = 'none';
+      page2.style.display = 'block';
+      contBtn.style.display = 'none';
+      subBtn.style.display = 'inline-block';
+    };
+
+    subBtn.onclick = () => {
+      form.style.display = 'none';
+      notice.style.display = 'block';
+    };
+  </script>
+</body>
+</html>

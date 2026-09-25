@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkedIn Easy Apply Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #eef3f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    
+    .jobs-easy-apply-modal {
+      width: 580px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      border: 1px solid #d0d7de;
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { font-size: 18px; color: #191919; }
+
+    .modal-progress {
+      height: 4px;
+      background: #e0e0e0;
+      width: 100%;
+    }
+    .modal-progress-bar {
+      height: 100%;
+      background: #0a66c2;
+      width: 25%;
+      transition: width 0.3s;
+    }
+
+    .modal-body {
+      padding: 24px;
+      min-height: 320px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #8c8c8c;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-control:focus { border-color: #0a66c2; ring: 2px solid rgba(10,102,194,0.2); }
+
+    fieldset {
+      border: none;
+      margin-bottom: 20px;
+    }
+    legend {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #fafafa;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-secondary { background: transparent; color: #666; border: 1px solid #666; }
+    .btn-primary { background: #0a66c2; color: #fff; }
+    .btn-primary:hover { background: #004182; }
+
+    .applied-success {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .applied-success h3 { font-size: 20px; color: #057642; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="jobs-easy-apply-modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2>Apply to FinPulse Systems</h2>
+      <span style="font-size: 13px; color: #666;">Easy Apply</span>
+    </div>
+
+    <div class="modal-progress">
+      <div class="modal-progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="modal-body">
+      <!-- Step 1: Contact Info -->
+      <div class="step-section active" id="step1">
+        <h3 style="font-size: 16px; margin-bottom: 16px;">Contact information</h3>
+        <div class="form-group">
+          <label for="fullNameInput">Full name</label>
+          <input type="text" class="form-control" id="fullNameInput" value="Shree Sharma" />
+        </div>
+        <div class="form-group">
+          <label for="emailInput">Email address</label>
+          <input type="text" class="form-control" id="emailInput" value="shree.sharma.dev@example.com" />
+        </div>
+        <div class="form-group">
+          <label for="phoneInput">Mobile phone number</label>
+          <input type="tel" class="form-control" id="phoneInput" placeholder="Enter contact number" />
+        </div>
+      </div>
+
+      <!-- Step 2: Resume -->
+      <div class="step-section" id="step2">
+        <h3 style="font-size: 16px; margin-bottom: 16px;">Resume</h3>
+        <p style="font-size: 13px; color: #666; margin-bottom: 14px;">Upload your CV or attach default PDF resume.</p>
+        <div class="form-group">
+          <label for="resumeUpload">Choose PDF Resume</label>
+          <input type="file" id="resumeUpload" accept=".pdf,.doc,.docx" />
+        </div>
+      </div>
+
+      <!-- Step 3: Additional Screening Questions -->
+      <div class="step-section" id="step3">
+        <h3 style="font-size: 16px; margin-bottom: 16px;">Additional Questions</h3>
+        <div class="form-group">
+          <label for="reactExpInput">How many years of work experience do you have with React?</label>
+          <input type="number" class="form-control" id="reactExpInput" min="0" max="25" />
+        </div>
+        <fieldset>
+          <legend>Are you legally authorized to work in India?</legend>
+          <div class="radio-option">
+            <input type="radio" id="authYes" name="workAuth" value="Yes" />
+            <label for="authYes">Yes</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="authNo" name="workAuth" value="No" />
+            <label for="authNo">No</label>
+          </div>
+        </fieldset>
+        <div class="form-group">
+          <label for="noticePeriodSelect">Notice Period</label>
+          <select class="form-control" id="noticePeriodSelect">
+            <option value="">Select an option</option>
+            <option value="Immediate">Immediate</option>
+            <option value="15 days">15 days</option>
+            <option value="30 days">30 days</option>
+            <option value="60 days">60 days</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Step 4: Review Application -->
+      <div class="step-section" id="step4">
+        <h3 style="font-size: 16px; margin-bottom: 16px;">Review your application</h3>
+        <p style="font-size: 13px; color: #555;">Please verify all details below before submitting your profile to FinPulse Systems.</p>
+        <div style="background: #f3f6f8; border-radius: 8px; padding: 14px; margin-top: 14px; font-size: 13px; line-height: 1.6;">
+          <div><strong>Candidate:</strong> Shree Sharma</div>
+          <div><strong>Contact:</strong> shree.sharma.dev@example.com</div>
+          <div><strong>Role:</strong> Lead Frontend Engineer</div>
+          <div><strong>Status:</strong> Ready to Submit</div>
+        </div>
+      </div>
+
+      <!-- Success Screen -->
+      <div class="applied-success" id="successScreen">
+        <h3>Application Submitted!</h3>
+        <p style="color: #666; font-size: 14px;">Your application has been received by FinPulse Systems.</p>
+        <button class="btn btn-primary" style="margin-top: 18px;" onclick="window.close()">Done</button>
+      </div>
+    </div>
+
+    <div class="modal-footer" id="modalFooter">
+      <button class="btn btn-secondary" id="backBtn" style="display: none;">Back</button>
+      <button class="btn btn-primary" id="nextBtn" aria-label="Continue to next step">Next</button>
+      <button class="btn btn-primary" id="reviewBtn" aria-label="Review your application" style="display: none;">Review</button>
+      <button class="btn btn-primary" id="submitBtn" aria-label="Submit application" style="display: none;">Submit application</button>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const progressBar = document.getElementById('progressBar');
+    const nextBtn = document.getElementById('nextBtn');
+    const backBtn = document.getElementById('backBtn');
+    const reviewBtn = document.getElementById('reviewBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const modalFooter = document.getElementById('modalFooter');
+    const successScreen = document.getElementById('successScreen');
+
+    function updateView() {
+      for (let i = 1; i <= totalSteps; i++) {
+        const el = document.getElementById(`step${i}`);
+        if (el) el.classList.remove('active');
+      }
+      const activeEl = document.getElementById(`step${currentStep}`);
+      if (activeEl) activeEl.classList.add('active');
+
+      progressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+
+      backBtn.style.display = currentStep > 1 ? 'inline-block' : 'none';
+      nextBtn.style.display = currentStep < 3 ? 'inline-block' : 'none';
+      reviewBtn.style.display = currentStep === 3 ? 'inline-block' : 'none';
+      submitBtn.style.display = currentStep === 4 ? 'inline-block' : 'none';
+    }
+
+    nextBtn.onclick = () => {
+      if (currentStep < totalSteps) currentStep++;
+      updateView();
+    };
+
+    backBtn.onclick = () => {
+      if (currentStep > 1) currentStep--;
+      updateView();
+    };
+
+    reviewBtn.onclick = () => {
+      currentStep = 4;
+      updateView();
+    };
+
+    submitBtn.onclick = () => {
+      for (let i = 1; i <= totalSteps; i++) {
+        const el = document.getElementById(`step${i}`);
+        if (el) el.classList.remove('active');
+      }
+      modalFooter.style.display = 'none';
+      successScreen.style.display = 'block';
+    };
+
+    updateView();
+  </script>
+</body>
+</html>

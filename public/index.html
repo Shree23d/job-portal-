@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Job Aggregator & AI Auto-Apply Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <h1>AutoApply<span class="gradient-text">.ai</span></h1>
+        <p class="tagline">Universal Job Aggregator & Intelligent Questionnaire Solver</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Safety Status Badge -->
+      <div class="safety-badge" id="safetyBadge">
+        <span class="status-dot green"></span>
+        <span id="safetyStatusText">Dry-Run Safeguard: Active</span>
+      </div>
+
+      <!-- Application Limit Control in Header -->
+      <div class="limit-badge-header" style="display: flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); padding: 5px 10px; border-radius: 8px; font-size: 13px; color: #c7d2fe;">
+        <span>🎯 Quota Limit:</span>
+        <input type="number" id="headerApplyLimitInput" min="1" max="50" value="3" title="Maximum applications before automation stops" style="width: 44px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); color: #38bdf8; text-align: center; border-radius: 4px; padding: 2px 4px; font-weight: 700; font-size: 13px;">
+        <span>jobs</span>
+      </div>
+
+      <!-- Stop Automation Emergency Button -->
+      <button class="btn btn-sm" id="stopAutomationHeaderBtn" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        🛑 Stop Automation
+      </button>
+
+      <!-- Live WebSocket Connection Indicator -->
+      <div class="connection-status" id="wsIndicator">
+        <span class="pulse-ring"></span>
+        <span>Connected</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="jobsTab">
+      <span class="tab-icon">⚡</span> Job Feed & AI Match
+      <span class="badge" id="jobCountBadge">6</span>
+    </button>
+    <button class="tab-btn" data-tab="monitorTab">
+      <span class="tab-icon">📡</span> Live Apply Monitor
+      <span class="badge-dot" id="monitorActiveDot"></span>
+    </button>
+    <button class="tab-btn" data-tab="profileTab">
+      <span class="tab-icon">👤</span> User Profile & Default Answers
+    </button>
+    <button class="tab-btn" data-tab="resumeTab">
+      <span class="tab-icon">📄</span> Resume Manager
+    </button>
+    <button class="tab-btn" data-tab="simulatorTab">
+      <span class="tab-icon">🧪</span> Simulator & Testbench
+    </button>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="app-content">
+
+    <!-- TAB 1: Job Aggregator & AI Matcher -->
+    <section class="tab-content active" id="jobsTab">
+      <!-- Live Job URL Direct Apply Bar -->
+      <div class="glass-card" style="padding: 16px 22px; margin-bottom: 18px; border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: #fff;">🌐 Direct Live Job URL Auto-Apply</h3>
+            <p style="font-size: 12px; color: var(--text-secondary);">Paste any live job link from LinkedIn Easy Apply, Naukri, or Indeed to trigger the AI auto-apply workflow directly.</p>
+          </div>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 700;">Live Production Ready</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="url" id="liveJobUrlInput" placeholder="https://www.linkedin.com/jobs/view/... or https://www.naukri.com/..." style="flex: 1; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 11px 16px; border-radius: 8px; font-size: 14px; outline: none;">
+          <div style="display: flex; align-items: center; gap: 6px; background: #0f172a; border: 1px solid var(--border-color); padding: 0 12px; border-radius: 8px; height: 44px; white-space: nowrap;">
+            <span style="font-size: 12px; color: var(--text-secondary);">Max Jobs:</span>
+            <input type="number" id="liveJobLimitInput" min="1" max="50" value="3" style="width: 44px; background: transparent; border: none; color: #38bdf8; font-weight: 700; font-size: 14px; text-align: center; outline: none;" title="Limit number of applications in this batch">
+          </div>
+          <button class="btn btn-primary" id="triggerLiveApplyBtn" style="white-space: nowrap;">
+            🚀 Auto-Apply Live URL
+          </button>
+        </div>
+      </div>
+
+      <div class="filters-bar glass-card">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="jobSearchInput" placeholder="Search by role, company, or skill (e.g. WordPress, Shopify, PHP)...">
+        </div>
+        <div class="filter-group">
+          <label>Portal:</label>
+          <select id="portalFilter" class="select-dropdown">
+            <option value="all">All Portals (Naukri, LinkedIn, Indeed)</option>
+            <option value="Naukri">Naukri.com</option>
+            <option value="LinkedIn">LinkedIn Easy Apply</option>
+            <option value="Indeed">Indeed Screening</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Min Match Fit:</label>
+          <div class="slider-wrapper">
+            <input type="range" id="minScoreSlider" min="50" max="95" value="60" step="5">
+            <span id="minScoreVal" class="slider-val">60%</span>
+          </div>
+        </div>
+        <button class="btn btn-outline" id="refreshJobsBtn">Refresh Feed</button>
+      </div>
+
+      <!-- Jobs Grid -->
+      <div class="jobs-grid" id="jobsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 2: Live Apply Monitor -->
+    <section class="tab-content" id="monitorTab">
+      <div class="monitor-grid">
+        <!-- Live Action Stream -->
+        <div class="glass-card monitor-panel">
+          <div class="panel-header">
+            <h3><span class="icon">💬</span> Questionnaire Solver Telemetry</h3>
+            <span class="subtext">Real-time LLM Prompt & Solution Inspections</span>
+          </div>
+          <div class="questions-stream" id="questionsStream">
+            <div class="empty-state">
+              <p>No active apply session. Trigger "Auto-Apply" from the Job Feed or test via the Simulator tab.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Automation Logs & Safety Status -->
+        <div class="glass-card monitor-panel">
+          <div class="panel-header">
+            <h3><span class="icon">📜</span> Playwright Automation Engine Logs</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm" id="stopAutomationPanelBtn" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; font-weight: 700;">🛑 Stop</button>
+              <button class="btn btn-sm btn-outline" id="clearLogsBtn">Clear</button>
+            </div>
+          </div>
+          <div class="logs-console" id="logsConsole">
+            <div class="log-entry system">[SYSTEM] Ready. Playwright headless browser worker initialized.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: User Profile & Default Answers -->
+    <section class="tab-content" id="profileTab">
+      <div class="profile-layout">
+        <div class="profile-main glass-card">
+          <div class="panel-header">
+            <div>
+              <h2>Master Candidate Profile</h2>
+              <p class="subtext">This profile strictly dictates LLM chatbot and form responses during auto-apply.</p>
+            </div>
+            <button class="btn btn-primary" id="saveProfileBtn">Save Profile Changes</button>
+          </div>
+
+          <form id="profileForm" class="profile-form">
+            <!-- Personal Info -->
+            <div class="form-section">
+              <h3 class="section-title">👤 Personal Details</h3>
+              <div class="grid-2">
+                <div class="form-field">
+                  <label>Full Name</label>
+                  <input type="text" id="profFullName" required>
+                </div>
+                <div class="form-field">
+                  <label>Email Address</label>
+                  <input type="email" id="profEmail" required>
+                </div>
+                <div class="form-field">
+                  <label>Phone Number</label>
+                  <input type="text" id="profPhone" required>
+                </div>
+                <div class="form-field">
+                  <label>Current Location / City</label>
+                  <input type="text" id="profLocation" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Career & Compensation -->
+            <div class="form-section">
+              <h3 class="section-title">💼 Career & Compensation</h3>
+              <div class="grid-3">
+                <div class="form-field">
+                  <label>Total Experience (Years)</label>
+                  <input type="number" id="profTotalExp" min="0" max="40" required>
+                </div>
+                <div class="form-field">
+                  <label>Current Role</label>
+                  <input type="text" id="profCurrentRole" required>
+                </div>
+                <div class="form-field">
+                  <label>Notice Period (Days)</label>
+                  <input type="number" id="profNoticeDays" min="0" max="180" required>
+                </div>
+                <div class="form-field">
+                  <label>Current CTC (LPA or Text)</label>
+                  <input type="text" id="profCurrentCTC" placeholder="e.g. 18,00,000 INR (18 LPA)">
+                </div>
+                <div class="form-field">
+                  <label>Expected CTC (LPA or Text)</label>
+                  <input type="text" id="profExpectedCTC" placeholder="e.g. 24,00,000 INR (24 LPA)">
+                </div>
+                <div class="form-field">
+                  <label>Serving Notice Period?</label>
+                  <select id="profServingNotice">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills & Experience Breakdown -->
+            <div class="form-section">
+              <h3 class="section-title">⚡ Skills & Experience Matrix (Years with each)</h3>
+              <p class="field-hint">The solver extracts exact numbers when recruiters ask "How many years with [Skill]?":</p>
+              <div class="skills-grid" id="skillsMatrixContainer">
+                <!-- Rendered dynamically -->
+              </div>
+              <div class="add-skill-row">
+                <input type="text" id="newSkillName" placeholder="Skill name (e.g. Docker, GraphQL)">
+                <input type="number" id="newSkillYears" min="0" max="25" placeholder="Years" style="width: 100px;">
+                <button type="button" class="btn btn-outline" id="addSkillBtn">+ Add Skill</button>
+              </div>
+            </div>
+
+            <!-- Standard Questionnaire Answers -->
+            <div class="form-section">
+              <h3 class="section-title">📋 Standard Questionnaire Answers</h3>
+              <div class="grid-2">
+                <div class="form-field">
+                  <label>Legally Authorized to Work?</label>
+                  <select id="stdWorkAuth">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Require Visa Sponsorship?</label>
+                  <select id="stdVisa">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Comfortable with Hybrid / Remote?</label>
+                  <select id="stdHybrid">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Willing to Relocate?</label>
+                  <select id="stdRelocate">
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resume & Automation Safety -->
+            <div class="form-section">
+              <h3 class="section-title">🛡️ Safety, Resume & Model Preferences</h3>
+              <div class="grid-2">
+                <div class="form-field">
+                  <label>Default Resume PDF Path</label>
+                  <input type="text" id="profResumePath" value="./resumes/default_resume.pdf">
+                </div>
+                <div class="form-field">
+                  <label>Preferred LLM Model</label>
+                  <select id="profModel">
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Confidence Threshold (%)</label>
+                  <input type="number" id="profConfidence" min="50" max="100" value="85">
+                  <span class="field-hint">Questions below this confidence trigger manual human intervention.</span>
+                </div>
+                <div class="form-field">
+                  <label>Max Applications Per Run (Hard Limit)</label>
+                  <input type="number" id="profMaxApplications" min="1" max="50" value="3">
+                  <span class="field-hint">Agent stops immediately after this limit to avoid wasting applications.</span>
+                </div>
+                <div class="toggle-card">
+                  <div>
+                    <strong>Dry Run / Review Mode</strong>
+                    <p class="field-hint">Fills forms automatically but pauses before clicking final Submit.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="profDryRun" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="toggle-card">
+                  <div>
+                    <strong>Audio Chime on Unknown Questions</strong>
+                    <p class="field-hint">Plays a sound when human-in-the-loop attention is required.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="profAudioChime" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: Resume Manager & Document Hub -->
+    <section class="tab-content" id="resumeTab">
+      <div class="resume-manager-container">
+        
+        <!-- Top Status Banner -->
+        <div class="glass-card" style="padding: 20px 24px; margin-bottom: 22px; border-left: 4px solid var(--accent-primary);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px;">📄 Active Resume & Application Documents</h2>
+              <p style="font-size: 13px; color: var(--text-secondary);">Your authentic resume is automatically attached by the Autonomous Agent to in-portal and external ATS company applications.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <a href="/api/resume/download" target="_blank" class="btn btn-outline" style="display: flex; align-items: center; gap: 6px;">
+                👁️ Preview / Download Active PDF
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="resume-grid">
+          <!-- Active Resume Card -->
+          <div class="glass-card resume-active-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <span class="resume-meta-badge">🟢 Master Application Resume</span>
+                <h3 id="activeResumeName" style="font-size: 18px; font-weight: 700; color: #fff; margin-top: 10px;">Shreyas Jadhav resume.pdf</h3>
+                <p id="activeResumeDetails" style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Size: 98 KB • Savitribai Phule Pune University • 3.5 Yrs Exp</p>
+              </div>
+              <div style="font-size: 38px;">📑</div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+              <h4 style="font-size: 13px; font-weight: 600; color: var(--accent-info); margin-bottom: 8px;">🤖 Autonomous Agent Capabilities on Forms:</h4>
+              <ul style="font-size: 12px; color: var(--text-secondary); list-style: none; display: flex; flex-direction: column; gap: 6px;">
+                <li>✅ <strong>Automatic PDF Upload:</strong> Injects this exact PDF file into all file upload inputs (Workday, Greenhouse, Lever, Naukri, LinkedIn, etc.)</li>
+                <li>✅ <strong>Visible Cursor Interaction:</strong> Glides across the screen with real-time status badges showing every action taken</li>
+                <li>✅ <strong>Multi-Tab Tracking:</strong> Switches focus automatically if an apply button redirects or opens in a new tab</li>
+                <li>✅ <strong>Dry-Run Safeguard:</strong> Prepares and fills out the application, then pauses for your review before final submission</li>
+              </ul>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <a href="/api/resume/download" target="_blank" class="btn btn-sm btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+                📥 Open / Download PDF
+              </a>
+            </div>
+          </div>
+
+          <!-- Upload New Resume Card -->
+          <div class="glass-card" style="padding: 24px;">
+            <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;">📤 Upload New Resume Version</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Upload an updated PDF resume anytime. It will instantly update your master profile and active application files.</p>
+
+            <div class="resume-dropzone" id="resumeDropzone">
+              <input type="file" id="resumeFileInput" accept=".pdf,.docx" style="display: none;">
+              <span class="dropzone-icon">☁️</span>
+              <div class="dropzone-title">Click to Browse or Drag & Drop PDF</div>
+              <div class="dropzone-hint">Supports PDF files up to 10MB</div>
+            </div>
+
+            <div id="uploadFeedback" style="margin-top: 14px; display: none; padding: 10px 14px; border-radius: 8px; font-size: 13px;"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: Simulator & Testbench -->
+    <section class="tab-content" id="simulatorTab">
+      <div class="simulator-layout">
+        <!-- Interactive Question Sandbox -->
+        <div class="glass-card testbench-panel">
+          <div class="panel-header">
+            <h3><span class="icon">🔬</span> Instant Question Solver Sandbox</h3>
+            <span class="subtext">Test how the LLM evaluates any question against your profile</span>
+          </div>
+          <div class="sandbox-body">
+            <div class="form-field">
+              <label>Recruiter Question Text</label>
+              <input type="text" id="sandboxQuestion" value="How many years of professional experience do you have with React and TypeScript?">
+            </div>
+            <div class="form-field">
+              <label>Optional Choices / Quick Reply Chips (comma separated)</label>
+              <input type="text" id="sandboxOptions" placeholder="e.g. 1-2 years, 3-4 years, 5+ years">
+            </div>
+            <div class="form-field">
+              <label>Expected Input Type</label>
+              <select id="sandboxInputType" class="select-dropdown">
+                <option value="text">Text / General</option>
+                <option value="number">Numeric (Keep clean)</option>
+                <option value="select">Dropdown Select</option>
+                <option value="radio">Radio Group</option>
+                <option value="chip">Chatbot Chip</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="runSandboxSolveBtn">Run LLM Solver</button>
+
+            <!-- Sandbox Results Card -->
+            <div class="sandbox-result" id="sandboxResultBox" style="display: none;">
+              <div class="result-header">
+                <strong>Solver Output:</strong>
+                <span class="badge" id="sandboxConfidenceBadge">Confidence: 95%</span>
+              </div>
+              <div class="result-value" id="sandboxAnswerValue">Answer Value</div>
+              <div class="result-reasoning" id="sandboxReasoning">Reasoning: Matched from master profile</div>
+              <div id="sandboxReviewNotice" class="hitl-banner" style="display: none;">
+                ⚠️ Low confidence / custom question: Flagged for Human-in-the-Loop review.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mock Portal Launchers -->
+        <div class="glass-card testbench-panel">
+          <div class="panel-header">
+            <h3><span class="icon">🎭</span> Platform Simulator Replicas</h3>
+            <span class="subtext">Safe local sandboxes to test and inspect Playwright automation</span>
+          </div>
+          <div class="sim-cards-grid">
+            <div class="sim-card">
+              <div class="sim-icon naukri">N</div>
+              <div class="sim-details">
+                <h4>Naukri Chatbot Overlay</h4>
+                <p>Simulates `.chatbot-container`, incoming bubbles, and quick-reply chips.</p>
+              </div>
+              <div class="sim-actions">
+                <a href="/simulator/naukri" target="_blank" class="btn btn-sm btn-outline">Open Tab</a>
+                <button class="btn btn-sm btn-primary" onclick="triggerSimApply('job-naukri-101')">Run Playwright</button>
+              </div>
+            </div>
+
+            <div class="sim-card">
+              <div class="sim-icon linkedin">in</div>
+              <div class="sim-details">
+                <h4>LinkedIn Easy Apply</h4>
+                <p>Simulates multi-step modal, resume attachment, and review step.</p>
+              </div>
+              <div class="sim-actions">
+                <a href="/simulator/linkedin" target="_blank" class="btn btn-sm btn-outline">Open Tab</a>
+                <button class="btn btn-sm btn-primary" onclick="triggerSimApply('job-linkedin-202')">Run Playwright</button>
+              </div>
+            </div>
+
+            <div class="sim-card">
+              <div class="sim-icon indeed">indeed</div>
+              <div class="sim-details">
+                <h4>Indeed Screening Form</h4>
+                <p>Simulates `#ia-container` screening questions, radios, and continue flows.</p>
+              </div>
+              <div class="sim-actions">
+                <a href="/simulator/indeed" target="_blank" class="btn btn-sm btn-outline">Open Tab</a>
+                <button class="btn btn-sm btn-primary" onclick="triggerSimApply('job-indeed-303')">Run Playwright</button>
+              </div>
+            </div>
+
+            <div class="sim-card">
+              <div class="sim-icon" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; font-weight: 800;">ATS</div>
+              <div class="sim-details">
+                <h4>External Company ATS Portal ("Tiny Brain")</h4>
+                <p>Simulates external career forms, auto-attaches authentic resume PDF, and solves custom screening questions.</p>
+              </div>
+              <div class="sim-actions">
+                <a href="/simulator/external" target="_blank" class="btn btn-sm btn-outline">Open Tab</a>
+                <button class="btn btn-sm btn-primary" onclick="triggerSimApply('job-external-404')">Run Playwright</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Account Logins (Persistent Sessions) -->
+          <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+            <h4 style="font-size: 14px; margin-bottom: 6px;">🔐 Portal Account Logins (Sign in Once)</h4>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Opens a headed browser window so you can log into your actual accounts. Your session cookies stay saved in your local browser profile forever.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-sm btn-outline" onclick="openLoginBrowser('linkedin')">🔑 Log into LinkedIn</button>
+              <button class="btn btn-sm btn-outline" onclick="openLoginBrowser('naukri')">🔑 Log into Naukri</button>
+              <button class="btn btn-sm btn-outline" onclick="openLoginBrowser('indeed')">🔑 Log into Indeed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Audio Chime Synth / Human Alert Modal -->
+  <div class="hitl-modal-overlay" id="hitlModalOverlay">
+    <div class="hitl-modal glass-card">
+      <div class="hitl-modal-header">
+        <span class="warning-icon">🔔</span>
+        <h3>Human-In-The-Loop Attention Required</h3>
+      </div>
+      <p id="hitlModalMessage">The question solver encountered an unfamiliar recruiter question below the 85% confidence threshold.</p>
+      <div class="hitl-question-box" id="hitlQuestionText"></div>
+      <div class="hitl-modal-actions">
+        <button class="btn btn-primary" id="hitlAcknowledgeBtn">Acknowledge & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

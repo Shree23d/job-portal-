@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Naukri.com Recruiter Chatbot Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f4f6f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    
+    .chatbot-container {
+      width: 440px;
+      height: 640px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .chat-header {
+      background: #004c8f;
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-header h3 { font-size: 16px; font-weight: 600; }
+    .chat-header p { font-size: 12px; opacity: 0.85; }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8fafc;
+    }
+
+    .bot-chat-bubble {
+      background: #ffffff;
+      padding: 12px 16px;
+      border-radius: 14px 14px 14px 2px;
+      color: #1e293b;
+      font-size: 14px;
+      line-height: 1.4;
+      max-width: 82%;
+      align-self: flex-start;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+
+    .user-chat-bubble {
+      background: #004c8f;
+      color: #ffffff;
+      padding: 12px 16px;
+      border-radius: 14px 14px 2px 14px;
+      font-size: 14px;
+      max-width: 82%;
+      align-self: flex-end;
+    }
+
+    .chatbot-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+      align-self: flex-start;
+    }
+
+    .chip-item {
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      color: #3730a3;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip-item:hover { background: #4338ca; color: #fff; }
+
+    .chat-input-area {
+      padding: 14px;
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input:focus { border-color: #004c8f; }
+
+    .send-btn {
+      background: #004c8f;
+      color: #fff;
+      border: none;
+      padding: 0 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .chatbot-success {
+      display: none;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chatbot-container">
+    <div class="chat-header">
+      <div style="width: 38px; height: 38px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004c8f;">N</div>
+      <div>
+        <h3>Naukri Recruiter Chatbot</h3>
+        <p>RazorTech Solutions - Quick Application</p>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatArea">
+      <div class="bot-chat-bubble">
+        Hello! Thanks for your interest in Senior Full Stack Developer role. Let's quickly verify a few screening questions.
+      </div>
+      <div class="bot-chat-bubble">
+        What is your current total years of work experience?
+      </div>
+      <div class="chatbot-chips" id="chipsArea">
+        <button class="chip-item">1-2 years</button>
+        <button class="chip-item">3-5 years</button>
+        <button class="chip-item">5+ years</button>
+      </div>
+    </div>
+
+    <div class="chatbot-success" id="successBox">
+      🎉 Application Submitted! The recruiter will review your profile.
+    </div>
+
+    <div class="chat-input-area" id="inputSection">
+      <input type="text" class="chat-input" id="userInput" placeholder="Type your answer here..." />
+      <button class="send-btn" id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let step = 0;
+    const chatArea = document.getElementById('chatArea');
+    const chipsArea = document.getElementById('chipsArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const successBox = document.getElementById('successBox');
+
+    const conversationFlow = [
+      {
+        question: "How many years of experience do you have with React?",
+        chips: ["2 years", "3 years", "4 years", "5+ years"]
+      },
+      {
+        question: "What is your Current CTC in Lakhs (LPA)?",
+        chips: [] // user types
+      },
+      {
+        question: "What is your Notice Period in days?",
+        chips: ["Immediate", "15 days", "30 days", "60 days", "90 days"]
+      },
+      {
+        question: "Are you willing to relocate to Bengaluru or work hybrid?",
+        chips: ["Yes", "No"]
+      }
+    ];
+
+    function addMessage(text, isUser = false) {
+      const bubble = document.createElement('div');
+      bubble.className = isUser ? 'user-chat-bubble' : 'bot-chat-bubble';
+      bubble.innerText = text;
+      chatArea.appendChild(bubble);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function advance(answer) {
+      addMessage(answer, true);
+      chipsArea.innerHTML = '';
+      userInput.value = '';
+
+      setTimeout(() => {
+        if (step < conversationFlow.length) {
+          const next = conversationFlow[step];
+          addMessage(next.question, false);
+          if (next.chips.length > 0) {
+            next.chips.forEach(c => {
+              const btn = document.createElement('button');
+              btn.className = 'chip-item';
+              btn.innerText = c;
+              btn.onclick = () => advance(c);
+              chipsArea.appendChild(btn);
+            });
+          }
+          step++;
+        } else {
+          // Finished
+          addMessage("Great! Everything matches our criteria.", false);
+          // Show submit button or auto complete
+          const submitBtn = document.createElement('button');
+          submitBtn.className = 'send-btn submit-application-btn';
+          submitBtn.style.padding = '12px 20px';
+          submitBtn.style.margin = '10px auto';
+          submitBtn.style.display = 'block';
+          submitBtn.innerText = 'Submit Application';
+          submitBtn.onclick = () => {
+            successBox.style.display = 'block';
+            submitBtn.style.display = 'none';
+          };
+          chatArea.appendChild(submitBtn);
+        }
+      }, 700);
+    }
+
+    // Attach initial chip listeners
+    document.querySelectorAll('.chip-item').forEach(btn => {
+      btn.onclick = () => advance(btn.innerText);
+    });
+
+    sendBtn.onclick = () => {
+      const val = userInput.value.trim();
+      if (val) advance(val);
+    };
+
+    userInput.onkeydown = (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Digital Agency Careers - Senior WordPress & Shopify Developer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 40px 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    .brand-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; }
+    .brand-logo { width: 44px; height: 44px; background: #0284c7; border-radius: 8px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; }
+    h1 { font-size: 24px; color: #0f172a; margin-bottom: 6px; }
+    .meta { font-size: 14px; color: #64748b; margin-bottom: 24px; display: flex; gap: 16px; }
+    .job-desc { font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 30px; }
+    .gateway-section { text-align: center; padding: 24px; background: #f1f5f9; border-radius: 8px; margin-bottom: 30px; }
+    .btn-apply-gateway { background: #0284c7; color: #fff; border: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .form-section { display: none; margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 30px; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none;
+    }
+    textarea { height: 90px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .file-dropzone { border: 2px dashed #94a3b8; padding: 20px; text-align: center; border-radius: 8px; background: #f8fafc; cursor: pointer; }
+    .btn-submit { background: #16a34a; color: #fff; border: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 16px; }
+    .success-alert { display: none; background: #dcfce7; border: 1px solid #22c55e; color: #15803d; padding: 20px; border-radius: 8px; text-align: center; font-size: 18px; font-weight: 700; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="brand-header">
+      <div class="brand-logo">N</div>
+      <div>
+        <h2>Nexus Digital Systems</h2>
+        <p style="font-size: 13px; color: #64748b;">Global Tech & E-Commerce Consultancy</p>
+      </div>
+    </div>
+
+    <h1>Senior WordPress & Shopify Liquid Developer</h1>
+    <div class="meta">
+      <span>📍 Pune, Maharashtra / Remote</span>
+      <span>💼 Full-Time</span>
+      <span>💰 5 - 8 LPA</span>
+    </div>
+
+    <div class="job-desc">
+      <p>We are seeking a senior front-end engineer specializing in WordPress, PHP child themes, WooCommerce, and Shopify Liquid architecture. You will be responsible for creating fast, mobile-optimized themes, building custom plugins, and delivering high-converting e-commerce experiences.</p>
+    </div>
+
+    <div class="gateway-section" id="gatewayBox">
+      <button class="btn-apply-gateway" id="applyGatewayBtn">Apply for this job</button>
+    </div>
+
+    <form class="form-section" id="applicationForm" onsubmit="event.preventDefault(); submitForm();">
+      <h3 style="font-size: 18px; margin-bottom: 20px; color: #0f172a;">Application Details</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name *</label>
+          <input type="text" id="firstName" name="first_name" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name *</label>
+          <input type="text" id="lastName" name="last_name" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone / Mobile *</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="linkedin">LinkedIn Profile URL</label>
+          <input type="text" id="linkedin" name="linkedin_url" placeholder="https://linkedin.com/in/...">
+        </div>
+        <div class="form-group">
+          <label for="portfolio">Portfolio / Website</label>
+          <input type="text" id="portfolio" name="website" placeholder="https://...">
+        </div>
+      </div>
+
+      <!-- Resume Attachment -->
+      <div class="form-group">
+        <label for="resumeFile">Resume / CV (PDF or DOCX) *</label>
+        <div class="file-dropzone" onclick="document.getElementById('resumeFile').click()">
+          <input type="file" id="resumeFile" name="resume" accept=".pdf,.doc,.docx" required>
+          <div id="fileStatusText" style="font-size: 13px; color: #475569; margin-top: 6px;">Click or attach your PDF resume file here</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="totalExperience">Total Years of Experience *</label>
+          <input type="text" id="totalExperience" name="experience" placeholder="e.g. 3.5">
+        </div>
+        <div class="form-group">
+          <label for="noticePeriod">Notice Period (Days) *</label>
+          <input type="text" id="noticePeriod" name="notice_period" placeholder="e.g. 15 or 0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="currentCtc">Current CTC / Compensation *</label>
+          <input type="text" id="currentCtc" name="current_ctc" placeholder="e.g. 4.2 LPA">
+        </div>
+        <div class="form-group">
+          <label for="expectedCtc">Expected CTC *</label>
+          <input type="text" id="expectedCtc" name="expected_ctc" placeholder="e.g. 5 LPA">
+        </div>
+      </div>
+
+      <!-- Screening Question -->
+      <div class="form-group">
+        <label for="screeningQuestion">Describe your experience with WordPress custom plugins and Shopify Liquid architecture:</label>
+        <textarea id="screeningQuestion" name="plugin_liquid_experience"></textarea>
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="workAuth" required checked>
+        <label for="workAuth" style="margin: 0; font-size: 13px; font-weight: normal;">I confirm that I am legally authorized to work in India</label>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitAppBtn">Submit Application</button>
+    </form>
+
+    <div class="success-alert" id="successBox">
+      🎉 Thank you for applying! Your application has been submitted successfully to Nexus Digital Systems.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('applyGatewayBtn').addEventListener('click', () => {
+      document.getElementById('gatewayBox').style.display = 'none';
+      document.getElementById('applicationForm').style.display = 'block';
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    });
+
+    document.getElementById('resumeFile').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        document.getElementById('fileStatusText').innerText = '✅ Attached: ' + e.target.files[0].name + ' (' + Math.round(e.target.files[0].size / 1024) + ' KB)';
+      }
+    });
+
+    function submitForm() {
+      document.getElementById('applicationForm').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

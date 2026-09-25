@@ -1,0 +1,17 @@
+{
+  "name": "universal-job-aggregator-auto-apply",
+  "version": "1.0.0",
+  "description": "Universal Job Aggregator & AI Filter Agent with Auto-Apply and Questionnaire Solver",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/test_solver.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^2.4.0",
+    "playwright": "^1.49.1",
+    "ws": "^8.18.0"
+  }
+}

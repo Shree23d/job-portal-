@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment Variables & Secrets (CRITICAL: Never commit API keys!)
+.env
+.env.local
+*.env
+
+# Browser Profiles, Storage & Cookies
+browser_user_data/
+data/browser_profile/
+data/
+.playwright/
+
+# Logs & Temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Test artifacts & generated screenshots
+test/*.png
+test/*.webp

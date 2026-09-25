@@ -1,0 +1,62 @@
+{
+  "personal": {
+    "fullName": "Shreyas Jadhav",
+    "email": "shreyasmjadhav23@gmail.com",
+    "phone": "+91 9175068149",
+    "currentLocation": "Pune, Maharashtra, India",
+    "streetAddress": "Pune, Maharashtra",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "country": "India",
+    "postalCode": "411001",
+    "willingToRelocate": "Yes",
+    "linkedInUrl": "https://www.linkedin.com/in/shreyas-jadhav",
+    "portfolioUrl": "https://digidaftar.com"
+  },
+  "career": {
+    "totalExperienceYears": 3.5,
+    "currentRole": "Web Developer (WordPress & Shopify)",
+    "noticePeriodDays": 30,
+    "currentCTC": "4,20,000 INR (4.2 LPA)",
+    "expectedCTC": "5,00,000 INR (5 LPA)",
+    "servingNoticePeriod": "No",
+    "highestEducation": "Bachelor of Engineering in Information Technology"
+  },
+  "skills": {
+    "WordPress": 3.5,
+    "Shopify": 3,
+    "Liquid": 3,
+    "WooCommerce": 3,
+    "PHP": 3.5,
+    "JavaScript": 3.5,
+    "HTML5": 4,
+    "CSS3": 4,
+    "jQuery": 3.5,
+    "Elementor Pro": 3,
+    "Custom Themes & Child Themes": 3.5,
+    "Plugin Development": 3,
+    "REST APIs": 3,
+    "Core Web Vitals & Speed Optimization": 3,
+    "Payment Gateway (Razorpay/Stripe/PayPal)": 2.5,
+    "Hosting (cPanel, hPanel, AWS)": 2.5,
+    "Rank Math SEO & GA4": 3,
+    "Git": 3
+  },
+  "standardAnswers": {
+    "workAuthorization": "Yes",
+    "requireVisaSponsorship": "No",
+    "comfortableWithHybrid": "Yes",
+    "willingToRelocate": "Yes"
+  },
+  "documents": {
+    "defaultResumePath": "./resumes/Shreyas_Jadhav_resume_1790275273218.pdf",
+    "coverLetter": "Experienced WordPress & Shopify Developer with 3+ years delivering 50+ high-performance client websites end-to-end. Specialized in custom Shopify Liquid themes, lightweight PHP templates, custom WordPress plugins, and front-end optimization."
+  },
+  "settings": {
+    "dryRun": false,
+    "confidenceThreshold": 85,
+    "audioChime": true,
+    "preferredModel": "gemini-2.0-flash",
+    "maxApplicationsPerRun": 3
+  }
+}
