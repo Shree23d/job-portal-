@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const AgentMemory = require('./agentMemory');
 require('dotenv').config();
 
 class QuestionSolver {
@@ -10,6 +11,7 @@ class QuestionSolver {
     this.model = options.model || (this.userProfile.settings && this.userProfile.settings.preferredModel) || 'gemini-3.6-flash';
     this.confidenceThreshold = options.confidenceThreshold || (this.userProfile.settings && this.userProfile.settings.confidenceThreshold) || 85;
     this.onLog = options.onLog || ((msg) => console.log(`[QuestionSolver] ${msg}`));
+    this.memory = options.memory || new AgentMemory({ onLog: this.onLog });
   }
 
   loadProfile() {
@@ -96,8 +98,17 @@ Respond ONLY with a valid JSON object in this exact schema (no markdown fencing,
    */
   async solveQuestion(questionText, options = [], inputType = 'text', fieldMetadata = {}) {
     this.reloadProfile();
-    const prompt = this.buildPrompt(questionText, options, inputType, fieldMetadata);
 
+    // 0. FIRST PRIORITY: Check Agent Memory / Brain
+    if (this.memory) {
+      const recalled = this.memory.recallAnswer(questionText, inputType, options);
+      if (recalled) {
+        this.onLog(`🧠 [BRAIN RECALL] Using remembered answer for: "${questionText}" (${recalled.verified ? 'User Verified' : 'AI Learned'}, ${recalled.confidence}% confidence)`);
+        return recalled;
+      }
+    }
+
+    const prompt = this.buildPrompt(questionText, options, inputType, fieldMetadata);
     let result = null;
 
     // 1. Try Gemini LLM if API Key is available
@@ -117,6 +128,19 @@ Respond ONLY with a valid JSON object in this exact schema (no markdown fencing,
     // 3. Apply Confidence & Safety Safeguards
     if (result.confidence < this.confidenceThreshold) {
       result.requires_manual_review = true;
+    }
+
+    // 4. LEARN & STORE: Commit new answer to Agent Memory
+    if (this.memory && result && result.answer !== undefined && result.answer !== null) {
+      this.memory.rememberAnswer(
+        questionText,
+        result.answer,
+        result.confidence,
+        'ai',
+        inputType,
+        options,
+        result.reasoning
+      );
     }
 
     return result;

@@ -9,7 +9,7 @@ node_modules/
 # Browser Profiles, Storage & Cookies
 browser_user_data/
 data/browser_profile/
-data/
+!data/agent_memory.json
 .playwright/
 
 # Logs & Temporary files

@@ -906,3 +906,24 @@ input:checked + .slider:before { transform: translateX(22px); }
   color: var(--text-muted);
 }
 
+/* Brain & Memory Tab Styling */
+.memory-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.memory-card:hover {
+  background: rgba(30, 41, 59, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+.memory-card .card-actions {
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.memory-card:hover .card-actions {
+  opacity: 1;
+}
+

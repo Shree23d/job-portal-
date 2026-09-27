@@ -309,6 +309,79 @@ app.post('/api/browser/login', (req, res) => {
   }
 });
 
+// --- Brain & Memory Management APIs ---
+
+// 12. Get All Learned Questions & Answers
+app.get('/api/memory/qa', (req, res) => {
+  try {
+    const { search, filter } = req.query;
+    const items = solver.memory.getAllQA(search, filter);
+    const stats = solver.memory.getStats();
+    return res.json({ success: true, items, stats });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 13. Add Custom Question & Answer
+app.post('/api/memory/qa', (req, res) => {
+  try {
+    const { question, answer, category } = req.body;
+    if (!question || answer === undefined) {
+      return res.status(400).json({ error: 'Question and answer are required' });
+    }
+    const created = solver.memory.addQA(question, answer, category || 'Custom');
+    return res.json({ success: true, item: created });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 14. Update / Edit Question & Answer (Certifies as User-Verified)
+app.put('/api/memory/qa/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question, answer, category } = req.body;
+    const updated = solver.memory.updateQA(id, { question, answer, category });
+    if (!updated) return res.status(404).json({ error: 'Memory item not found' });
+    return res.json({ success: true, item: updated });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 15. Delete Q&A Memory Item
+app.delete('/api/memory/qa/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const success = solver.memory.deleteQA(id);
+    if (!success) return res.status(404).json({ error: 'Memory item not found' });
+    return res.json({ success: true, message: 'Memory item deleted' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 16. Get Episodic Memory (Application History)
+app.get('/api/memory/history', (req, res) => {
+  try {
+    const history = solver.memory.memory.applicationHistory || [];
+    return res.json({ success: true, history });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// 17. Get Brain Statistics
+app.get('/api/memory/stats', (req, res) => {
+  try {
+    const stats = solver.memory.getStats();
+    return res.json({ success: true, stats });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Process-level guards against unexpected browser disconnect crashes
 process.on('uncaughtException', (err) => {
   console.warn('[Process Uncaught Warning]:', err.message);

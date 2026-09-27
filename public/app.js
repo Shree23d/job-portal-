@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProfile();
   loadJobs();
   loadResumeInfo();
+  loadMemoryData();
   setupResumeUploader();
   setupEventListeners();
 });
@@ -63,6 +64,7 @@ function setupTabs() {
       const targetId = btn.getAttribute('data-tab');
       const targetEl = document.getElementById(targetId);
       if (targetEl) targetEl.classList.add('active');
+      if (targetId === 'memoryTab') loadMemoryData();
     });
   });
 }
@@ -757,4 +759,276 @@ function setupResumeUploader() {
     }
   }
 }
+
+// ======================================================================
+// 🧠 AGENT BRAIN & LONG-TERM MEMORY CONTROLLER
+// ======================================================================
+
+let memoryItemsCache = [];
+let currentMemoryFilter = 'all';
+let currentMemorySearch = '';
+
+async function loadMemoryData() {
+  try {
+    const params = new URLSearchParams();
+    if (currentMemorySearch) params.append('search', currentMemorySearch);
+    if (currentMemoryFilter !== 'all') params.append('filter', currentMemoryFilter);
+
+    const res = await fetch(`/api/memory/qa?${params.toString()}`);
+    const data = await res.json();
+
+    if (data.success) {
+      memoryItemsCache = data.items || [];
+      renderMemoryCards(memoryItemsCache);
+      renderMemoryStats(data.stats);
+    }
+
+    loadApplicationHistory();
+  } catch (err) {
+    console.error('Failed to load memory data:', err);
+  }
+}
+
+function renderMemoryStats(stats) {
+  if (!stats) return;
+  const statTotal = document.getElementById('memStatTotal');
+  const statVerified = document.getElementById('memStatVerified');
+  const statAi = document.getElementById('memStatAi');
+  const statRecalled = document.getElementById('memStatRecalled');
+  const badge = document.getElementById('memoryCountBadge');
+
+  if (statTotal) statTotal.innerText = stats.totalQuestions || 0;
+  if (statVerified) statVerified.innerText = stats.verifiedCount || 0;
+  if (statAi) statAi.innerText = stats.aiCount || 0;
+  if (statRecalled) statRecalled.innerText = stats.totalRecalled || 0;
+  if (badge) badge.innerText = stats.totalQuestions || 0;
+}
+
+function handleMemorySearch(query) {
+  currentMemorySearch = query;
+  loadMemoryData();
+}
+
+function handleMemoryFilter(filter) {
+  currentMemoryFilter = filter;
+  loadMemoryData();
+}
+
+function renderMemoryCards(items) {
+  const container = document.getElementById('memoryQaContainer');
+  if (!container) return;
+
+  if (!items || items.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card" style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+        <div style="font-size: 32px; margin-bottom: 10px;">🔍</div>
+        <h4 style="color: #fff; font-size: 15px; margin-bottom: 6px;">No Memories Match Your Filter</h4>
+        <p style="font-size: 13px; margin: 0;">Try adjusting your search query or click "Teach New Question &amp; Answer" above.</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map(item => {
+    const isVerified = item.verified;
+    const badgeColor = isVerified ? '#34d399' : '#a78bfa';
+    const badgeBg = isVerified ? 'rgba(16, 185, 129, 0.15)' : 'rgba(167, 139, 250, 0.15)';
+    const badgeBorder = isVerified ? 'rgba(16, 185, 129, 0.35)' : 'rgba(167, 139, 250, 0.35)';
+    const badgeText = isVerified ? '✅ User Verified (100%)' : '🤖 AI Autonomous';
+    const timesUsed = item.timesUsed || 1;
+    const category = item.category || 'General';
+
+    return `
+      <div class="glass-card memory-card" id="mem-card-${item.id}" style="padding: 18px 22px; border-left: 4px solid ${isVerified ? '#10b981' : '#6366f1'}; transition: all 0.2s ease;">
+        <!-- Header row -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; font-size: 11px;">📂 ${escapeHtml(category)}</span>
+            <span class="badge" style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; font-size: 11px; font-weight: 700;">${badgeText}</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Used ${timesUsed} ${timesUsed === 1 ? 'time' : 'times'}</span>
+          </div>
+          <div style="display: flex; gap: 6px;" class="card-actions">
+            <button class="btn btn-sm btn-outline" onclick="startEditMemory('${item.id}')" title="Edit this answer" style="padding: 4px 10px; font-size: 12px;">✏️ Edit Answer</button>
+            <button class="btn btn-sm btn-outline" onclick="deleteMemoryItem('${item.id}')" title="Delete from memory" style="padding: 4px 8px; font-size: 12px; color: #f87171; border-color: rgba(239, 68, 68, 0.3);">🗑️</button>
+          </div>
+        </div>
+
+        <!-- Question Title -->
+        <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.4;">
+          ${escapeHtml(item.question)}
+        </h4>
+
+        <!-- Read-only Answer View -->
+        <div id="view-ans-${item.id}" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Recruiter Field Response:</div>
+          <div style="font-size: 13.5px; color: #e2e8f0; line-height: 1.5; white-space: pre-wrap; font-family: ${item.answer.length < 50 && !item.answer.includes(' ') ? 'monospace' : 'inherit'};">
+            ${item.answer === '' ? '<em style="color: var(--text-muted);">(Left empty for optional field)</em>' : escapeHtml(item.answer)}
+          </div>
+        </div>
+
+        <!-- Inline Edit Form (Hidden by default) -->
+        <div id="edit-form-${item.id}" style="display: none; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+          <label style="display: block; font-size: 12px; color: #38bdf8; font-weight: 600; margin-bottom: 6px;">Update Answer for this Question:</label>
+          <textarea id="edit-input-${item.id}" rows="3" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; resize: vertical; outline: none; margin-bottom: 10px;">${escapeHtml(item.answer)}</textarea>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button class="btn btn-sm btn-outline" onclick="cancelEditMemory('${item.id}')">Cancel</button>
+            <button class="btn btn-sm btn-primary" onclick="saveEditMemory('${item.id}')">✅ Save &amp; Certify Answer</button>
+          </div>
+        </div>
+
+        <!-- Footer meta & reasoning -->
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
+          <span>💡 <em>${escapeHtml(item.reasoning || 'Standard answer profile')}</em></span>
+          <span>Last referenced: ${item.lastUsed ? new Date(item.lastUsed).toLocaleDateString() : 'Recently'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function startEditMemory(id) {
+  const viewEl = document.getElementById(`view-ans-${id}`);
+  const editEl = document.getElementById(`edit-form-${id}`);
+  if (viewEl && editEl) {
+    viewEl.style.display = 'none';
+    editEl.style.display = 'block';
+    const input = document.getElementById(`edit-input-${id}`);
+    if (input) input.focus();
+  }
+}
+
+function cancelEditMemory(id) {
+  const viewEl = document.getElementById(`view-ans-${id}`);
+  const editEl = document.getElementById(`edit-form-${id}`);
+  if (viewEl && editEl) {
+    viewEl.style.display = 'block';
+    editEl.style.display = 'none';
+  }
+}
+
+async function saveEditMemory(id) {
+  const input = document.getElementById(`edit-input-${id}`);
+  if (!input) return;
+  const newAnswer = input.value;
+
+  try {
+    const res = await fetch(`/api/memory/qa/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answer: newAnswer })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('Answer updated and verified! Agent will use this exact answer.', 'success');
+      loadMemoryData();
+    } else {
+      showNotification(`Update failed: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+async function deleteMemoryItem(id) {
+  if (!confirm('Are you sure you want to remove this learned answer from memory?')) return;
+  try {
+    const res = await fetch(`/api/memory/qa/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('Memory removed successfully.', 'info');
+      loadMemoryData();
+    }
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+function openTeachMemoryModal() {
+  const modal = document.getElementById('teachMemoryModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeTeachMemoryModal() {
+  const modal = document.getElementById('teachMemoryModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function handleTeachMemorySubmit(e) {
+  e.preventDefault();
+  const qInput = document.getElementById('teachQuestionInput');
+  const aInput = document.getElementById('teachAnswerInput');
+  const catInput = document.getElementById('teachCategorySelect');
+
+  if (!qInput || !aInput) return;
+
+  try {
+    const res = await fetch('/api/memory/qa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: qInput.value,
+        answer: aInput.value,
+        category: catInput?.value || 'Custom'
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showNotification('New memory learned and committed to agent brain!', 'success');
+      closeTeachMemoryModal();
+      qInput.value = '';
+      aInput.value = '';
+      loadMemoryData();
+    } else {
+      showNotification(`Failed: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showNotification(`Error: ${err.message}`, 'error');
+  }
+}
+
+async function loadApplicationHistory() {
+  const listEl = document.getElementById('memoryHistoryList');
+  const badgeEl = document.getElementById('appHistoryCountBadge');
+  if (!listEl) return;
+
+  try {
+    const res = await fetch('/api/memory/history');
+    const data = await res.json();
+
+    if (data.success && Array.isArray(data.history)) {
+      if (badgeEl) badgeEl.innerText = `${data.history.length} Applications`;
+
+      if (data.history.length === 0) {
+        listEl.innerHTML = `
+          <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 18px;">
+            No applications logged in episodic memory yet. As you run auto-apply, every company application will be recorded here.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = data.history.slice(0, 15).map(app => {
+        const isSuccess = app.status === 'Submitted' || app.status.includes('Paused');
+        const statusColor = isSuccess ? '#34d399' : '#f87171';
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px;">
+            <div>
+              <strong style="color: #fff;">${escapeHtml(app.company)}</strong>
+              <span style="color: var(--text-secondary); margin-left: 8px;">${escapeHtml(app.title)}</span>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                ${new Date(app.appliedAt).toLocaleString()} &bull; <a href="${escapeHtml(app.url)}" target="_blank" style="color: #38bdf8; text-decoration: none;">View Posting &rarr;</a>
+              </div>
+            </div>
+            <span class="badge" style="background: rgba(255,255,255,0.06); color: ${statusColor}; font-weight: 700;">
+              ${escapeHtml(app.status)}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    console.warn('Failed loading app history:', e);
+  }
+}
+
 

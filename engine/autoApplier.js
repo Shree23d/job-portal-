@@ -189,6 +189,20 @@ class AutoApplier {
         targetUrl = `https://${targetUrl}`;
       }
 
+      // Check Episodic Memory for recent applications to prevent duplicate submissions
+      if (this.solver?.memory && !options.forceReapply && !targetUrl.includes('simulator') && !targetUrl.includes('localhost')) {
+        const recentApp = this.solver.memory.hasAppliedRecently(targetUrl || job.company);
+        if (recentApp) {
+          this.log(`⚠️ [EPISODIC MEMORY] You recently applied to "${recentApp.company}" for "${recentApp.title}" on ${new Date(recentApp.appliedAt).toLocaleDateString()} (Status: ${recentApp.status}). Skipping duplicate application.`);
+          this.emitEvent({
+            type: 'APPLY_SKIPPED',
+            jobId: job.id,
+            reason: `Already applied on ${new Date(recentApp.appliedAt).toLocaleDateString()}`
+          });
+          return { skipped: true, reason: `Already applied to ${recentApp.company}`, recentApp };
+        }
+      }
+
       this.log(`Navigating to application page: ${targetUrl}`);
       await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 35000 });
       await page.waitForTimeout(1500);
@@ -304,6 +318,19 @@ class AutoApplier {
           type: 'APPLY_FAILED',
           jobId: job.id,
           reason: result ? result.reason || result.message : 'Application could not complete'
+        });
+      }
+
+      // Save application event to Agent Memory (Episodic Memory)
+      if (this.solver?.memory) {
+        const finalStatus = result?.dryRunPaused ? 'Paused (Dry Run)' : (result?.success ? 'Submitted' : 'Failed');
+        this.solver.memory.recordApplication({
+          company: job.company,
+          title: job.title,
+          portal: job.portal,
+          applyUrl: targetPageUrl || targetUrl,
+          status: finalStatus,
+          dryRun
         });
       }
 

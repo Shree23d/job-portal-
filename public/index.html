@@ -68,6 +68,10 @@
     <button class="tab-btn" data-tab="resumeTab">
       <span class="tab-icon">📄</span> Resume Manager
     </button>
+    <button class="tab-btn" data-tab="memoryTab">
+      <span class="tab-icon">🧠</span> Brain &amp; Memory
+      <span class="badge" id="memoryCountBadge" style="margin-left: 6px; padding: 2px 7px; font-size: 11px; background: rgba(56, 189, 248, 0.2); color: #38bdf8;">12</span>
+    </button>
     <button class="tab-btn" data-tab="simulatorTab">
       <span class="tab-icon">🧪</span> Simulator & Testbench
     </button>
@@ -514,7 +518,125 @@
       </div>
     </section>
 
+    <!-- TAB 6: Brain & Persistent Memory -->
+    <section class="tab-content" id="memoryTab">
+      <div class="glass-card" style="margin-bottom: 20px; padding: 22px 26px; border-color: rgba(56, 189, 248, 0.35); background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+              <span style="font-size: 26px;">🧠</span>
+              <h2 style="font-size: 20px; font-weight: 800; color: #fff;">Agent Brain &amp; Long-Term Memory</h2>
+              <span class="badge" style="background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);">Self-Learning Active</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); max-width: 720px; margin: 0;">
+              Every question the agent encounters is remembered here. You can inspect answers, edit them with your exact preferred wording, and teach the bot new facts. Any edited answer is verified with 100% priority for future forms.
+            </p>
+          </div>
+          <button class="btn btn-primary" onclick="openTeachMemoryModal()" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);">
+            <span>➕</span> Teach New Question &amp; Answer
+          </button>
+        </div>
+
+        <!-- Brain Metrics Strip -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-top: 20px;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Total Memories</div>
+            <div style="font-size: 24px; font-weight: 800; color: #38bdf8;" id="memStatTotal">0</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">User Verified</div>
+            <div style="font-size: 24px; font-weight: 800; color: #34d399;" id="memStatVerified">0</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">AI Learned</div>
+            <div style="font-size: 24px; font-weight: 800; color: #a78bfa;" id="memStatAi">0</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Times Recalled</div>
+            <div style="font-size: 24px; font-weight: 800; color: #fbbf24;" id="memStatRecalled">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="filters-bar glass-card" style="margin-bottom: 18px;">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="memorySearchInput" placeholder="Search remembered questions, answers, or categories..." oninput="handleMemorySearch(this.value)">
+        </div>
+        <div class="filter-group">
+          <label>Filter:</label>
+          <select id="memoryFilterSelect" class="select-dropdown" onchange="handleMemoryFilter(this.value)">
+            <option value="all">All Learned Memories</option>
+            <option value="verified">✅ User Verified (100%)</option>
+            <option value="ai">🤖 AI Autonomous</option>
+            <option value="needs_review">⚠️ Needs Review (&lt; 85%)</option>
+          </select>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="loadMemoryData()" title="Refresh memory bank">🔄 Refresh</button>
+      </div>
+
+      <!-- Q&A Cards Container -->
+      <div id="memoryQaContainer" style="display: grid; gap: 14px; margin-bottom: 30px;">
+        <!-- Dynamic Cards Injected via app.js -->
+      </div>
+
+      <!-- Episodic Memory: Past Applications History -->
+      <div class="glass-card" style="padding: 20px 24px; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 700; color: #fff;">📜 Episodic Memory: Applications History Log</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Jobs and company career portals the bot has applied to. Prevents duplicate submissions within 30 days.</p>
+          </div>
+          <span class="badge" id="appHistoryCountBadge" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1;">0 Applications</span>
+        </div>
+        <div id="memoryHistoryList" style="display: grid; gap: 10px;">
+          <!-- Injected via app.js -->
+        </div>
+      </div>
+    </section>
+
   </main>
+
+  <!-- Modal: Teach New Memory Q&A -->
+  <div class="hitl-modal-overlay" id="teachMemoryModal">
+    <div class="hitl-modal glass-card" style="max-width: 600px; width: 90%;">
+      <div class="hitl-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🧠</span>
+          <h3 style="font-size: 16px; margin: 0;">Teach Agent New Question &amp; Answer</h3>
+        </div>
+        <button type="button" onclick="closeTeachMemoryModal()" style="background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer;">&times;</button>
+      </div>
+      <form id="teachMemoryForm" onsubmit="handleTeachMemorySubmit(event)">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">Question Prompt (from recruiter or form):</label>
+          <input type="text" id="teachQuestionInput" required placeholder="e.g. Why are you interested in this role?" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none;">
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">Category:</label>
+          <select id="teachCategorySelect" style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none;">
+            <option value="Introduction">Introduction &amp; About You</option>
+            <option value="Experience">Experience &amp; Tech Stack</option>
+            <option value="Compensation">Compensation &amp; Salary</option>
+            <option value="Availability">Notice Period &amp; Availability</option>
+            <option value="Links">Portfolio &amp; Resume Links</option>
+            <option value="Preferences">Preferences &amp; Workplace</option>
+            <option value="Legal">Legal &amp; Work Authorization</option>
+            <option value="Custom">Custom / Other</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 600;">Exact Answer to Provide:</label>
+          <textarea id="teachAnswerInput" required rows="4" placeholder="Enter the exact answer you want the agent to type into forms..." style="width: 100%; background: #0f172a; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px; resize: vertical; outline: none;"></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-outline" onclick="closeTeachMemoryModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">💾 Commit to Memory</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Audio Chime Synth / Human Alert Modal -->
   <div class="hitl-modal-overlay" id="hitlModalOverlay">
