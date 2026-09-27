@@ -226,6 +226,12 @@ app.post('/api/solve', async (req, res) => {
   }
 });
 
+const isCloudEnvironment = process.env.HEADLESS === 'true' || process.env.NODE_ENV === 'production' || (!process.env.DISPLAY && process.platform === 'linux');
+function resolveHeadless(requestedHeadless) {
+  if (isCloudEnvironment) return true;
+  return requestedHeadless ?? false;
+}
+
 // 8. Trigger Auto-Apply on a Job
 app.post('/api/apply', async (req, res) => {
   const { jobId, dryRun, headless, maxApplications } = req.body;
@@ -242,7 +248,7 @@ app.post('/api/apply', async (req, res) => {
   const result = await autoApplier.applyToJob(job, profile, {
     dryRun: dryRun ?? profile.settings?.dryRun ?? true,
     maxApplications: maxApplications || profile.settings?.maxApplicationsPerRun || 3,
-    headless: headless ?? false // Headed so user can watch cursor!
+    headless: resolveHeadless(headless)
   });
 
   const finalStatus = (result && result.dryRunPaused)
@@ -285,7 +291,7 @@ app.post('/api/apply/live', async (req, res) => {
   await autoApplier.applyToJob(liveJob, profile, {
     dryRun: dryRun ?? profile.settings?.dryRun ?? true,
     maxApplications: maxApplications || profile.settings?.maxApplicationsPerRun || 3,
-    headless: headless ?? false, // Default to headed so user can watch!
+    headless: resolveHeadless(headless),
     usePersistentSession: true
   });
 });
