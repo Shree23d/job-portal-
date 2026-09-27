@@ -14,6 +14,7 @@ class AutonomousFormFiller {
   constructor(page, questionSolver, options = {}) {
     this.page = page;
     this.solver = questionSolver;
+    this.applier = options.applier || null;
     this.dryRun = options.dryRun ?? true;
     this.maxSteps = options.maxSteps || 10;
     this.onLog = options.onLog || ((msg) => console.log(`[AutonomousFormFiller] ${msg}`));
@@ -41,6 +42,172 @@ class AutonomousFormFiller {
   }
 
   /**
+   * Scans page and frames to determine if any interactive form inputs exist.
+   */
+  async detectAnyFormElements(targets = [this.page, ...this.page.frames()]) {
+    for (const target of targets) {
+      try {
+        const inputs = await target.locator('input:not([type="hidden"]), textarea, select, [contenteditable="true"]').all().catch(() => []);
+        for (const input of inputs) {
+          if (await input.isVisible().catch(() => false)) {
+            return true;
+          }
+        }
+      } catch (e) {}
+    }
+    return false;
+  }
+
+  /**
+   * Injects an on-page interactive assistance banner asking the user to locate the form.
+   */
+  async injectAssistanceBanner() {
+    try {
+      await this.page.evaluate(() => {
+        if (document.getElementById('agent-assistance-banner')) return;
+        window.__userFormAction = null;
+
+        const banner = document.createElement('div');
+        banner.id = 'agent-assistance-banner';
+        banner.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+          color: #ffffff;
+          padding: 12px 24px;
+          z-index: 2147483647;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+          border-bottom: 3px solid #6366f1;
+          box-sizing: border-box;
+        `;
+
+        banner.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="font-size: 24px;">⏸️</div>
+            <div>
+              <div style="font-weight: 700; font-size: 15px; color: #fbbf24; letter-spacing: 0.3px;">
+                PAUSED: Please Help Locate the Application Form!
+              </div>
+              <div style="font-size: 13px; color: #cbd5e1; margin-top: 2px;">
+                I could not detect the form automatically. Please click "Apply", open the job form, or scroll to it. Then click Continue!
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="banner-skip-btn" style="
+              background: #ef4444;
+              color: #ffffff;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              font-weight: 600;
+              font-size: 13px;
+              cursor: pointer;
+              transition: all 0.2s;
+            ">⏭️ Skip Job</button>
+            <button id="banner-resume-btn" style="
+              background: #10b981;
+              color: #ffffff;
+              border: none;
+              padding: 9px 20px;
+              border-radius: 6px;
+              font-weight: 700;
+              font-size: 13px;
+              cursor: pointer;
+              box-shadow: 0 2px 10px rgba(16,185,129,0.4);
+              transition: all 0.2s;
+            ">✅ I Found the Form - Continue</button>
+          </div>
+        `;
+
+        document.body.prepend(banner);
+
+        document.getElementById('banner-resume-btn')?.addEventListener('click', () => {
+          window.__userFormAction = 'resume';
+        });
+
+        document.getElementById('banner-skip-btn')?.addEventListener('click', () => {
+          window.__userFormAction = 'skip';
+        });
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Removes the on-page assistance banner.
+   */
+  async removeAssistanceBanner() {
+    try {
+      await this.page.evaluate(() => {
+        const b = document.getElementById('agent-assistance-banner');
+        if (b) b.remove();
+      });
+    } catch (e) {}
+  }
+
+  /**
+   * Pauses execution and waits for the user to navigate/click to the form.
+   */
+  async promptUserToLocateForm() {
+    this.onLog('⏸️ [PAUSE] Form not detected automatically. Pausing bot to allow user to locate the form...');
+    this.onEvent({
+      type: 'AWAIT_FORM_ASSISTANCE',
+      url: this.page.url(),
+      message: '⚠️ Application form not detected automatically. Please find and click the form in the browser!'
+    });
+
+    await HumanBrowser.updateStatus(this.page, '⏸️ Paused: Please open the form, then click Continue!');
+
+    // Inject on-page banner in browser
+    await this.injectAssistanceBanner();
+
+    const action = await new Promise((resolve) => {
+      // Connect to autoApplier resolver for dashboard UI buttons
+      if (this.applier) {
+        this.applier.activeFormAssistanceResolver = resolve;
+      }
+
+      // Check for on-page button click every 500ms
+      const poll = setInterval(async () => {
+        try {
+          const clicked = await this.page.evaluate(() => window.__userFormAction).catch(() => null);
+          if (clicked) {
+            clearInterval(poll);
+            resolve({ action: clicked });
+          }
+        } catch (e) {}
+      }, 500);
+
+      // Auto-timeout after 3 minutes (180s)
+      setTimeout(() => {
+        clearInterval(poll);
+        resolve({ action: 'timeout' });
+      }, 180000);
+    });
+
+    await this.removeAssistanceBanner();
+
+    if (action && action.action === 'resume') {
+      this.onLog('✅ [USER RESUMED] User signaled form located! Resuming autonomous solver...');
+      this.onEvent({
+        type: 'FORM_ASSISTANCE_RESUMED',
+        message: 'Resuming autonomous form filler!'
+      });
+      await this.page.waitForTimeout(1500);
+      await HumanBrowser.injectVisualCursor(this.page);
+      return { resumed: true };
+    }
+
+    return { resumed: false, reason: action ? action.action : 'cancelled' };
+  }
+
+  /**
    * Main autonomous orchestration on the external page
    */
   async handle() {
@@ -59,6 +226,22 @@ class AutonomousFormFiller {
 
     // Step 3: Check if page has an initial "Apply for this role" / "Apply Now" gateway button
     await this.checkAndClickApplyGateway();
+
+    // Step 3.5: Check if any form fields exist. If not, pause and ask the user to locate the form!
+    let initialTargets = [this.page, ...this.page.frames()];
+    let hasForm = await this.detectAnyFormElements(initialTargets);
+
+    if (!hasForm) {
+      this.onLog('⚠️ [TINY BRAIN] No visible form elements found on initial scan. Asking user for assistance...');
+      const assistanceResult = await this.promptUserToLocateForm();
+      if (!assistanceResult.resumed) {
+        this.onLog(`⏭️ Skipping job because form could not be located (${assistanceResult.reason}).`);
+        return { success: false, skipped: true, reason: 'Form not located' };
+      }
+      // Re-scan after user navigated to form
+      await HumanBrowser.smoothScroll(this.page, 200, '🔍 Scanning newly located form...');
+      await this.page.waitForTimeout(800);
+    }
 
     // Step 4: Multi-step form solving loop (supporting top page and any embedded iframes)
     let currentStep = 0;

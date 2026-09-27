@@ -39,12 +39,36 @@ class AutoApplier {
       type: 'APPLY_STOPPED',
       message: 'Automation manually stopped by user.'
     });
+    if (this.activeFormAssistanceResolver) {
+      this.activeFormAssistanceResolver({ action: 'skip' });
+      this.activeFormAssistanceResolver = null;
+    }
     if (this.currentActiveContext) {
       try {
         this.currentActiveContext.close().catch(() => {});
       } catch (e) {}
       this.currentActiveContext = null;
     }
+  }
+
+  resumeFormAssistance() {
+    if (this.activeFormAssistanceResolver) {
+      this.log('▶️ [USER ASSISTANCE] User signaled form located. Resuming autonomous solver...');
+      this.activeFormAssistanceResolver({ action: 'resume' });
+      this.activeFormAssistanceResolver = null;
+      return true;
+    }
+    return false;
+  }
+
+  skipFormAssistance() {
+    if (this.activeFormAssistanceResolver) {
+      this.log('⏭️ [USER ASSISTANCE] User chose to skip job with missing form.');
+      this.activeFormAssistanceResolver({ action: 'skip' });
+      this.activeFormAssistanceResolver = null;
+      return true;
+    }
+    return false;
   }
 
   cleanStaleLocks() {
@@ -221,6 +245,7 @@ class AutoApplier {
       const handlerOptions = {
         dryRun,
         maxApplications,
+        applier: this,
         onLog: (msg) => this.log(msg),
         onEvent: (evt) => this.emitEvent(evt)
       };

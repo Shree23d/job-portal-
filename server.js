@@ -302,6 +302,24 @@ app.post('/api/apply/stop', (req, res) => {
   return res.json({ success: true, message: 'Automation run stopped successfully.' });
 });
 
+// 10B. Resume Bot After User Locates Form on External Link
+app.post('/api/apply/resume-form', (req, res) => {
+  const success = autoApplier.resumeFormAssistance();
+  return res.json({
+    success,
+    message: success ? 'Form assistance resumed.' : 'No active form assistance session waiting.'
+  });
+});
+
+// 10C. Skip Job When Form Cannot Be Located
+app.post('/api/apply/skip-form', (req, res) => {
+  const success = autoApplier.skipFormAssistance();
+  return res.json({
+    success,
+    message: success ? 'Job skipped successfully.' : 'No active form assistance session waiting.'
+  });
+});
+
 // 11. Launch Browser Session for Manual Portal Login
 app.post('/api/browser/login', (req, res) => {
   const { portal } = req.body;

@@ -132,8 +132,53 @@ function handleServerEvent(evt) {
     addConsoleLog(`[LIMIT REACHED] 🛑 ${evt.message}`, 'warning');
     showNotification(`🛑 Application limit reached (${evt.applied}/${evt.limit} applied). Automation stopped.`, 'warning');
     document.getElementById('monitorActiveDot').classList.remove('active');
+  } else if (evt.type === 'AWAIT_FORM_ASSISTANCE') {
+    addConsoleLog(`[PAUSED] ⚠️ ${evt.message}`, 'warning');
+    showNotification('⚠️ Action Needed: Please locate the form in the open Chrome tab!', 'warning');
+    showFormAssistanceModal();
+  } else if (evt.type === 'FORM_ASSISTANCE_RESUMED') {
+    hideFormAssistanceModal();
+    addConsoleLog(`[RESUMED] ✅ ${evt.message}`, 'success');
+  } else if (evt.type === 'APPLY_STOPPED' || evt.type === 'APPLY_FAILED') {
+    hideFormAssistanceModal();
   }
 }
+
+function showFormAssistanceModal() {
+  const modal = document.getElementById('formAssistanceModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+  }
+}
+
+function hideFormAssistanceModal() {
+  const modal = document.getElementById('formAssistanceModalOverlay');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('active');
+  }
+}
+
+document.getElementById('resumeFormBtn')?.addEventListener('click', async () => {
+  try {
+    await fetch('/api/apply/resume-form', { method: 'POST' });
+    hideFormAssistanceModal();
+    showNotification('Resuming autonomous form filler...', 'info');
+  } catch (e) {
+    console.error('Failed to resume form assistance:', e);
+  }
+});
+
+document.getElementById('skipFormBtn')?.addEventListener('click', async () => {
+  try {
+    await fetch('/api/apply/skip-form', { method: 'POST' });
+    hideFormAssistanceModal();
+    showNotification('Skipped current job.', 'info');
+  } catch (e) {
+    console.error('Failed to skip form assistance:', e);
+  }
+});
 
 function addConsoleLog(text, level = 'normal') {
   const consoleEl = document.getElementById('logsConsole');

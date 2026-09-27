@@ -651,6 +651,30 @@
         <button class="btn btn-primary" id="hitlAcknowledgeBtn">Acknowledge & Continue</button>
       </div>
     </div>
+  <!-- Modal: External Form Assistance -->
+  <div class="hitl-modal-overlay" id="formAssistanceModalOverlay" style="display: none; z-index: 10001;">
+    <div class="hitl-modal glass-card" style="border: 2px solid #f59e0b; max-width: 540px; box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);">
+      <div class="hitl-modal-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <span style="font-size: 28px;">⏸️</span>
+        <div>
+          <h3 style="margin: 0; color: #fbbf24; font-size: 1.15rem;">Action Needed: Form Not Detected</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">External Company Career Portal</span>
+        </div>
+      </div>
+      <p style="color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px; font-size: 14px;">
+        The agent navigated to the external link, but could not automatically detect an application form or apply button on the initial page.
+      </p>
+      <div style="background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b; padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+        <div style="font-weight: 600; color: #fbbf24; font-size: 13px; margin-bottom: 4px;">💡 What to do now:</div>
+        <div style="font-size: 13px; color: #e2e8f0; line-height: 1.4;">
+          Look at the open Chrome browser window on your Mac screen. Click <strong>"Apply"</strong>, navigate to the job form, or scroll to the application fields.
+        </div>
+      </div>
+      <div class="hitl-modal-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn btn-outline" id="skipFormBtn" style="border-color: #ef4444; color: #f87171;">⏭️ Skip This Job</button>
+        <button type="button" class="btn btn-primary" id="resumeFormBtn" style="background: #10b981; border: none; font-weight: 600; box-shadow: 0 4px 15px rgba(16,185,129,0.35);">✅ I Found the Form - Continue</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
