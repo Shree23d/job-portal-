@@ -8,6 +8,7 @@
     "test": "node test/test_solver.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "multer": "^2.4.0",

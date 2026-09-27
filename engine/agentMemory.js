@@ -10,6 +10,13 @@
 
 const fs = require('fs');
 const path = require('path');
+let syncLocalMemoryToCloud = null;
+let logApplicationToCloud = null;
+try {
+  const sb = require('./supabaseClient');
+  syncLocalMemoryToCloud = sb.syncLocalMemoryToCloud;
+  logApplicationToCloud = sb.logApplicationToCloud;
+} catch (e) {}
 
 class AgentMemory {
   constructor(options = {}) {
@@ -47,13 +54,21 @@ class AgentMemory {
   }
 
   /**
-   * Persists memory state to JSON file safely.
+   * Persists memory state to JSON file safely and backs up to Supabase Cloud if available.
    */
   persistMemory(data = this.memory) {
     try {
       const dir = path.dirname(this.memoryPath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(this.memoryPath, JSON.stringify(data, null, 2), 'utf8');
+      
+      // Asynchronously backup to Supabase Cloud
+      if (typeof syncLocalMemoryToCloud === 'function' && Array.isArray(data.qaBank)) {
+        syncLocalMemoryToCloud(data.qaBank).catch(err => {
+          this.onLog(`Cloud sync notice: ${err.message}`);
+        });
+      }
+
       return true;
     } catch (err) {
       this.onLog(`Error saving memory: ${err.message}`);
@@ -520,6 +535,18 @@ class AgentMemory {
     }
 
     this.persistMemory();
+
+    // Log to Supabase Cloud asynchronously
+    if (typeof logApplicationToCloud === 'function') {
+      logApplicationToCloud({
+        job_title: entry.title,
+        company: entry.company,
+        job_url: entry.url,
+        platform: entry.portal,
+        status: entry.status
+      }).catch(() => {});
+    }
+
     return entry;
   }
 
