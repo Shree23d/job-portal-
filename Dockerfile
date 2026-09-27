@@ -1,5 +1,5 @@
-# Use official Playwright Ubuntu image with pre-installed Chromium and dependencies
-FROM mcr.microsoft.com/playwright:v1.49.1-jammy
+# Use official Playwright Ubuntu image matching version 1.63.0
+FROM mcr.microsoft.com/playwright:v1.63.0-jammy
 
 # Set working directory inside container
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package definitions
 COPY package*.json ./
 
-# Install project dependencies
-RUN npm install
+# Install project dependencies and ensure matching Chromium binary is downloaded
+RUN npm install && npx playwright install chromium
 
 # Copy application source code
 COPY . .
