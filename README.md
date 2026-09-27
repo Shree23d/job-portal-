@@ -74,3 +74,4 @@ Open **`http://localhost:3000`** in your browser.
 ### Managing Your Profile & Resume
 - **Resume Manager**: Upload or preview your PDF resume under the *Resume Manager* tab.
 - **Candidate Profile**: Edit your skills, CTC expectations, and experience under *Safety & Profile*.
+# job-portal
