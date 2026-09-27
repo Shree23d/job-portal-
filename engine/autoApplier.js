@@ -140,8 +140,9 @@ class AutoApplier {
    */
   async applyToJob(job, userProfile, options = {}) {
     const dryRun = options.dryRun ?? (userProfile.settings?.dryRun ?? true);
-    const isCloudEnv = process.env.HEADLESS === 'true' || process.env.NODE_ENV === 'production';
-    const headless = options.headless !== undefined ? options.headless : isCloudEnv;
+    const isLinuxHeadless = process.platform === 'linux' && !process.env.DISPLAY;
+    const isCloudEnv = process.env.HEADLESS === 'true' || process.env.NODE_ENV === 'production' || isLinuxHeadless;
+    const headless = isLinuxHeadless ? true : (options.headless !== undefined ? options.headless : isCloudEnv);
     const usePersistentSession = options.usePersistentSession ?? true;
 
     this.log(`Starting auto-apply session for "${job.title}" at ${job.company} [${job.portal}]...`);
