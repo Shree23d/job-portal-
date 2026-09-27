@@ -398,7 +398,7 @@ wss.on('connection', (ws) => {
   }));
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(`🚀 Universal Job Aggregator & AI Filter Agent running!`);
   console.log(`📡 Local Dashboard: http://localhost:${PORT}`);
